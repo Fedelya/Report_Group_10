@@ -1,15 +1,10 @@
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import './globals.css';
+// app/layout.js
+import "../styles/globals.css"; // Đảm bảo import TailwindCSS
 
 export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body>
-        <Header />
-        <main>{children}</main>
-        <Footer />
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en">
+        <body>{children}</body>
+        </html>
+    );
 }

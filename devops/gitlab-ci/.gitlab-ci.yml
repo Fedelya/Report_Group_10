@@ -1,0 +1,125 @@
+# Định nghĩa các stage trong pipeline
+stages:
+  - build
+  - test
+  - deploy
+
+# Variables toàn cục (có thể định nghĩa trong GitLab CI/CD Settings)
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+  IMAGE_REGISTRY: docker.io
+  IMAGE_USERNAME: tientran1311
+  IMAGE_NAME_PREFIX: watch-store
+
+# Job build cho user-service
+build_user_service:
+  stage: build
+  image: docker:20.10
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $IMAGE_USERNAME -p $DOCKER_HUB_PASSWORD $IMAGE_REGISTRY
+  script:
+    - cd ./devops/docker/user-service
+    - docker build -t $IMAGE_REGISTRY/$IMAGE_USERNAME/$IMAGE_NAME_PREFIX-user-service:$CI_COMMIT_REF_SLUG .
+    - docker push $IMAGE_REGISTRY/$IMAGE_USERNAME/$IMAGE_NAME_PREFIX-user-service:$CI_COMMIT_REF_SLUG
+  only:
+    - main
+    - develop
+    - feature/*
+
+# Job build cho product-service
+build_product_service:
+  stage: build
+  image: docker:20.10
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $IMAGE_USERNAME -p $DOCKER_HUB_PASSWORD $IMAGE_REGISTRY
+  script:
+    - cd ./devops/docker/product-service
+    - docker build -t $IMAGE_REGISTRY/$IMAGE_USERNAME/$IMAGE_NAME_PREFIX-product-service:$CI_COMMIT_REF_SLUG .
+    - docker push $IMAGE_REGISTRY/$IMAGE_USERNAME/$IMAGE_NAME_PREFIX-product-service:$CI_COMMIT_REF_SLUG
+  only:
+    - main
+    - develop
+    - feature/*
+
+# Job build cho order-service
+build_order_service:
+  stage: build
+  image: docker:20.10
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $IMAGE_USERNAME -p $DOCKER_HUB_PASSWORD $IMAGE_REGISTRY
+  script:
+    - cd ./devops/docker/order-service
+    - docker build -t $IMAGE_REGISTRY/$IMAGE_USERNAME/$IMAGE_NAME_PREFIX-order-service:$CI_COMMIT_REF_SLUG .
+    - docker push $IMAGE_REGISTRY/$IMAGE_USERNAME/$IMAGE_NAME_PREFIX-order-service:$CI_COMMIT_REF_SLUG
+  only:
+    - main
+    - develop
+    - feature/*
+
+# Job build cho payment-service
+build_payment_service:
+  stage: build
+  image: docker:20.10
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $IMAGE_USERNAME -p $DOCKER_HUB_PASSWORD $IMAGE_REGISTRY
+  script:
+    - cd ./devops/docker/payment-service
+    - docker build -t $IMAGE_REGISTRY/$IMAGE_USERNAME/$IMAGE_NAME_PREFIX-payment-service:$CI_COMMIT_REF_SLUG .
+    - docker push $IMAGE_REGISTRY/$IMAGE_USERNAME/$IMAGE_NAME_PREFIX-payment-service:$CI_COMMIT_REF_SLUG
+  only:
+    - main
+    - develop
+    - feature/*
+
+# Job build cho frontend
+build_frontend:
+  stage: build
+  image: docker:20.10
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $IMAGE_USERNAME -p $DOCKER_HUB_PASSWORD $IMAGE_REGISTRY
+  script:
+    - cd ./devops/docker/frontend
+    - docker build -t $IMAGE_REGISTRY/$IMAGE_USERNAME/$IMAGE_NAME_PREFIX-frontend:$CI_COMMIT_REF_SLUG .
+    - docker push $IMAGE_REGISTRY/$IMAGE_USERNAME/$IMAGE_NAME_PREFIX-frontend:$CI_COMMIT_REF_SLUG
+  only:
+    - main
+    - develop
+    - feature/*
+
+# Job test (tùy chọn, nếu có test case)
+test_job:
+  stage: test
+  image: node:16-alpine
+  script:
+    - cd ./backend/payment-service
+    - npm install
+    - npm test  # Cần thêm file test (ví dụ: Jest) nếu muốn
+  only:
+    - main
+    - develop
+
+# Job deploy (tùy chọn, sử dụng docker-compose)
+deploy_job:
+  stage: deploy
+  image: docker:20.10
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $IMAGE_USERNAME -p $DOCKER_HUB_PASSWORD $IMAGE_REGISTRY
+    - cd ./devops/docker
+  script:
+    - docker-compose pull
+    - docker-compose up -d
+  only:
+    - main
