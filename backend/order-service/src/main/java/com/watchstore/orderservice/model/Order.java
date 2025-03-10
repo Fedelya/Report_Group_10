@@ -1,11 +1,6 @@
 package com.watchstore.orderservice.model;
 
 public class Order {
-<<<<<<< HEAD
-
-}
-
-=======
     private String id;
     private String customer;
     private double total;
@@ -54,4 +49,3 @@ public class Order {
         this.status = status;
     }
 }
->>>>>>> develop

@@ -1,19 +1,5 @@
 package com.watchstore.orderservice.controller;
 
-<<<<<<< HEAD
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-@RestController
-@RequestMapping("/orders")
-public class OrderController {
-    @GetMapping
-    public String getOrders() {
-        return "Order Service is up!";
-    }
-}
-=======
 import com.watchstore.orderservice.model.Order;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,4 +32,3 @@ public class OrderController {
         return null; // Hoặc ném exception nếu không tìm thấy
     }
 }
->>>>>>> develop
