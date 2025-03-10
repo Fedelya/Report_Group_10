@@ -1,6 +1,7 @@
 // app/staff/orders/page.js
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 export default function StaffOrders() {
     const [orders, setOrders] = useState([]);
@@ -89,7 +90,7 @@ export default function StaffOrders() {
                 <div className="text-2xl font-bold">📊 Watch Store</div>
                 <div className="space-x-4">
                     <a href="#" className="hover:underline">Home</a>
-                    <a href="#" className="hover:underline">Orders</a>
+                    <a href="/staff/orders" className="hover:underline">Orders</a>
                     <a href="#" className="hover:underline">Products</a>
                     <a href="#" className="hover:underline">Reports</a>
                     <input
@@ -135,7 +136,11 @@ export default function StaffOrders() {
                             {filteredOrders.length > 0 ? (
                                 filteredOrders.map((order) => (
                                     <tr key={order.id} className="border-t">
-                                        <td className="p-2">{order.id}</td>
+                                        <td className="p-2">
+                                            <Link href={`/staff/order/${order.id.replace("#", "")}`} className="text-blue-500 hover:underline">
+                                                {order.id}
+                                            </Link>
+                                        </td>
                                         <td className="p-2">{order.customer}</td>
                                         <td className="p-2">${order.total}</td>
                                         <td className="p-2">{order.status}</td>
