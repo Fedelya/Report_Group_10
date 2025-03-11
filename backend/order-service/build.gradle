@@ -26,6 +26,12 @@ dependencies {
     // https://mvnrepository.com/artifact/de.flapdoodle.embed/de.flapdoodle.embed.mongo
     testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.18.1' // Thêm Embedded MongoDB cho test
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Thêm dependency Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
