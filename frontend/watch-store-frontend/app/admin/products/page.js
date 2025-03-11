@@ -10,112 +10,6 @@ export default function ProductManagement() {
     const [editProduct, setEditProduct] = useState(null);
     const [formData, setFormData] = useState({ name: "", price: "", stock: "" });
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                setLoading(true);
-                const res = await fetch("http://localhost:8082/products", {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                if (!res.ok) {
-                    throw new Error(`HTTP error! Status: ${res.status}`);
-                }
-
-                const data = await res.json();
-                setProducts(data);
-            } catch (error) {
-                console.error("Failed to fetch products:", error.message);
-                setError(error.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProducts();
-    }, []);
-
-    const handleAddProduct = () => {
-        setEditProduct(null);
-        setFormData({ name: "", price: "", stock: "" });
-        setShowModal(true);
-    };
-
-    const handleEditProduct = (product) => {
-        setEditProduct(product);
-        setFormData({ name: product.name, price: product.price, stock: product.stock });
-        setShowModal(true);
-    };
-
-    const handleDeleteProduct = async (id) => {
-        if (!confirm("Are you sure you want to delete this product?")) return;
-        try {
-            const res = await fetch(`http://localhost:8082/products/${id}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (!res.ok) {
-                throw new Error("Failed to delete product");
-            }
-
-            setProducts(products.filter((product) => product.id !== id));
-        } catch (error) {
-            console.error("Failed to delete product:", error.message);
-            setError(error.message);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const method = editProduct ? "PUT" : "POST";
-            const url = editProduct
-                ? `http://localhost:8082/products/${editProduct.id}`
-                : "http://localhost:8082/products";
-            const res = await fetch(url, {
-                method,
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    price: parseFloat(formData.price),
-                    stock: parseInt(formData.stock),
-                }),
-            });
-
-            if (!res.ok) {
-                throw new Error(`Failed to ${editProduct ? "update" : "add"} product`);
-            }
-
-            const updatedProduct = await res.json();
-            if (editProduct) {
-                setProducts(
-                    products.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
-                );
-            } else {
-                setProducts([...products, updatedProduct]);
-            }
-            setShowModal(false);
-        } catch (error) {
-            console.error(`Failed to ${editProduct ? "update" : "add"} product:`, error.message);
-            setError(error.message);
-        }
-    };
-
-    if (loading) {
-        return <div className="p-6 text-center">Loading...</div>;
-    }
-
-    if (error) {
-        return <div className="p-6 text-center text-red-500">Error: {error}</div>;
-    }
-
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Header */}
@@ -149,7 +43,7 @@ export default function ProductManagement() {
                 <main className="w-4/5 p-6">
                     <h1 className="text-2xl font-bold mb-4">Product Management</h1>
                     <button
-                        onClick={handleAddProduct}
+                        // onClick={handleAddProduct}
                         className="bg-green-500 text-white p-2 rounded mb-4 hover:bg-green-600"
                     >
                         Add New Product
@@ -175,13 +69,13 @@ export default function ProductManagement() {
                                         <td className="p-2">{product.stock}</td>
                                         <td className="p-2">
                                             <button
-                                                onClick={() => handleEditProduct(product)}
+                                                // onClick={() => handleEditProduct(product)}
                                                 className="bg-blue-500 text-white p-1 rounded mr-2 hover:bg-blue-600"
                                             >
                                                 Edit
                                             </button>
                                             <button
-                                                onClick={() => handleDeleteProduct(product.id)}
+                                                // onClick={() => handleDeleteProduct(product.id)}
                                                 className="bg-red-500 text-white p-1 rounded hover:bg-red-600"
                                             >
                                                 Delete

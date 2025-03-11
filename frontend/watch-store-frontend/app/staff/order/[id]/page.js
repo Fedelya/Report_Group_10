@@ -1,218 +1,117 @@
-// app/staff/order/[id]/page.js
 "use client";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+import { FiSearch, FiLogOut } from "react-icons/fi";
 
 export default function OrderDetail() {
-    const { id } = useParams(); // Lấy id từ URL (ví dụ: /staff/order/001)
+    const { id } = useParams();
     const [order, setOrder] = useState(null);
     const [status, setStatus] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
-    useEffect(() => {
-        const fetchOrderDetail = async () => {
-            try {
-                setLoading(true);
-                console.log("Fetching from:", `${process.env.NEXT_PUBLIC_API_BASE_URL}/orders/${id}`);
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/orders/${id}`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                console.log("Response status:", res.status);
-                console.log("Response headers:", Object.fromEntries(res.headers));
-
-                if (!res.ok) {
-                    const errorText = await res.text(); // Lấy nội dung lỗi từ API
-                    console.log("Error response:", errorText);
-                    if (res.status === 404) {
-                        throw new Error("Order not found");
-                    }
-                    throw new Error(`HTTP error! Status: ${res.status} - ${errorText}`);
-                }
-
-                const contentType = res.headers.get("content-type");
-                if (!contentType || !contentType.includes("application/json")) {
-                    throw new Error("Response is not JSON");
-                }
-
-                const data = await res.json();
-                console.log("Fetched data:", data);
-                setOrder(data);
-                setStatus(data.status || "Pending");
-            } catch (error) {
-                console.error("Failed to fetch order detail:", error.message);
-                setError(error.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchOrderDetail();
-    }, [id]);
-
-    const updateStatus = async () => {
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/orders/${id}`, {
-                method: "PATCH",
-                body: JSON.stringify({ status }),
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!res.ok) {
-                throw new Error("Failed to update status");
-            }
-
-            const updatedOrder = { ...order, status };
-            setOrder(updatedOrder);
-            alert("Status updated successfully!");
-        } catch (error) {
-            console.error("Failed to update order status:", error.message);
-            setError(error.message);
-        }
-    };
-
-    if (loading) {
-        return <div className="p-6 text-center">Loading...</div>;
-    }
-
-    if (error) {
-        return <div className="p-6 text-center text-red-500">Error: {error}</div>;
-    }
-
-    if (!order) {
-        return <div className="p-6 text-center">Order not found</div>;
-    }
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
 
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Header */}
-            <header className="bg-white shadow p-4 flex justify-between items-center">
+            <header className="bg-white shadow-md p-4 fixed w-full top-0 left-0 z-50 flex justify-between items-center">
                 <div className="text-2xl font-bold">📊 Watch Store</div>
-                <div className="space-x-4">
-                    <a href="#" className="hover:underline">Home</a>
-                    <a href="/staff/orders" className="hover:underline">Orders</a>
-                    <a href="#" className="hover:underline">Products</a>
-                    <a href="#" className="hover:underline">Reports</a>
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        className="p-2 border rounded"
-                    />
-                    <button className="bg-gray-800 text-white p-2 rounded">Logout</button>
-                </div>
+                <nav className="flex space-x-6 items-center">
+                    <Link href="/" className="hover:text-blue-500">Home</Link>
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowDropdown(!showDropdown)}
+                            className="hover:text-blue-500 focus:outline-none"
+                        >
+                            Manage ▼
+                        </button>
+                        {showDropdown && (
+                            <div className="absolute bg-white shadow-lg rounded mt-2 w-40">
+                                <Link href="/staff/products" className="block px-4 py-2 hover:bg-gray-200">Products</Link>
+                                <Link href="/staff/categories" className="block px-4 py-2 hover:bg-gray-200">Categories</Link>
+                                <Link href="/staff/orders" className="block px-4 py-2 hover:bg-gray-200">Orders</Link>
+                            </div>
+                        )}
+                    </div>
+                    <Link href="/staff/reports" className="hover:text-blue-500">Report</Link>
+                    <FiSearch className="text-gray-600 cursor-pointer" size={20} />
+                    <FiLogOut className="text-red-500 cursor-pointer" size={20} />
+                </nav>
             </header>
 
-            {/* Sidebar */}
-            <div className="flex">
-                <aside className="w-1/5 bg-white p-4 shadow">
-                    <h3 className="text-lg font-semibold mb-4">Sections</h3>
-                    <ul>
-                        <li className="mb-2">Order Details</li>
-                        <li className="mb-2">Customer Info</li>
-                        <li className="mb-2">Shipping Info</li>
-                    </ul>
-                </aside>
+            {/* Order Detail Section */}
+            <main className="max-w-4xl mx-auto bg-white p-6 shadow-lg rounded-lg pt-24">
+                <h1 className="text-3xl font-extrabold text-gray-800 mb-6">Order #{order.id}</h1>
 
-                {/* Main Content */}
-                <main className="w-4/5 p-6">
-                    <h1 className="text-2xl font-bold mb-4">Order Details - {order.id}</h1>
-                    <div className="bg-white shadow rounded p-4">
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <p><strong>Order ID:</strong> {order.id}</p>
-                                <p><strong>Customer:</strong> {order.customer}</p>
-                                <p><strong>Total:</strong> ${order.total}</p>
-                                <p><strong>Status:</strong>
-                                    <select
-                                        value={status}
-                                        onChange={(e) => setStatus(e.target.value)}
-                                        className="ml-2 p-1 border rounded"
-                                    >
-                                        <option value="Pending">Pending</option>
-                                        <option value="Processing">Processing</option>
-                                        <option value="Delivered">Delivered</option>
-                                    </select>
-                                </p>
-                                <p><strong>Shipping Address:</strong> {order.shippingAddress || "Not specified"}</p>
-                            </div>
+                {/* Order Summary */}
+                <div className="bg-gray-50 p-4 rounded-lg shadow-sm mb-6">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <p className="text-gray-700"><strong>Customer:</strong> {order.customer}</p>
+                            <p className="text-gray-700"><strong>Email:</strong> {order.email || "N/A"}</p>
+                            <p className="text-gray-700"><strong>Shipping Address:</strong> {order.shippingAddress}</p>
                         </div>
+                        <div>
+                            <p className="text-gray-700"><strong>Total:</strong> <span className="text-lg font-semibold text-green-600">${order.total}</span></p>
+                            <p className="text-gray-700"><strong>Shipping Fee:</strong> ${order.shippingFee || 0}</p>
+                            <p className="text-gray-700">
+                                <strong>Status:</strong>
+                                <select
+                                    value={status}
+                                    onChange={(e) => setStatus(e.target.value)}
+                                    className="ml-2 p-1 border rounded bg-gray-100"
+                                    disabled={isUpdating}
+                                >
+                                    <option value="Pending">Pending</option>
+                                    <option value="Processing">Processing</option>
+                                    <option value="Delivered">Delivered</option>
+                                </select>
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-                        <h2 className="text-xl font-semibold mb-2">Products</h2>
-                        <table className="w-full mb-4">
-                            <thead>
-                            <tr className="bg-gray-200">
-                                <th className="p-2 text-left">Product Name</th>
-                                <th className="p-2 text-left">Quantity</th>
-                                <th className="p-2 text-left">Price</th>
-                                <th className="p-2 text-left">Subtotal</th>
+                {/* Product List */}
+                <h2 className="text-xl font-bold mb-3">Products</h2>
+                <div className="border rounded-md overflow-hidden shadow-sm">
+                    <table className="w-full text-sm">
+                        <thead className="bg-gray-200 text-gray-700">
+                        <tr>
+                            <th className="p-2 text-left">Product</th>
+                            <th className="p-2 text-center">Quantity</th>
+                            <th className="p-2 text-right">Price</th>
+                            <th className="p-2 text-right">Subtotal</th>
+                        </tr>
+                        </thead>
+                        <tbody className="bg-white">
+                        {order.products?.map((product, index) => (
+                            <tr key={index} className="border-t">
+                                <td className="p-2">{product.productName}</td>
+                                <td className="p-2 text-center">{product.quantity}</td>
+                                <td className="p-2 text-right">${product.unitPrice}</td>
+                                <td className="p-2 text-right">${product.subtotal}</td>
                             </tr>
-                            </thead>
-                            <tbody>
-                            {(order.products || []).map((product, index) => (
-                                <tr key={index} className="border-t">
-                                    <td className="p-2">{product.name || "N/A"}</td>
-                                    <td className="p-2">{product.quantity || 0}</td>
-                                    <td className="p-2">${product.price || 0}</td>
-                                    <td className="p-2">${(product.quantity || 0) * (product.price || 0)}</td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                        ))}
+                        {!order.products?.length && (
+                            <tr>
+                                <td colSpan="4" className="p-2 text-center">No products found</td>
+                            </tr>
+                        )}
+                        </tbody>
+                    </table>
+                </div>
 
-                        <button
-                            onClick={updateStatus}
-                            className="bg-green-500 text-white p-2 rounded hover:bg-green-600"
-                        >
-                            Update Status
-                        </button>
-                    </div>
-                </main>
-            </div>
-
-            {/* Footer */}
-            <footer className="bg-white shadow mt-6 p-4 flex justify-between">
-                <div>
-                    <div className="flex space-x-2 mb-2">
-                        <span>🐦</span> <span>📷</span> <span>💼</span>
-                    </div>
-                    <div>Quick Links</div>
-                    <ul className="text-sm">
-                        <li>UI design</li>
-                        <li>UX design</li>
-                        <li>Wireframing</li>
-                        <li>Diagramming</li>
-                        <li>Brainstorming</li>
-                        <li>Online whiteboard</li>
-                        <li>Team collaboration</li>
-                    </ul>
-                </div>
-                <div>
-                    <div>Help & Info</div>
-                    <ul className="text-sm">
-                        <li>Track Your Order</li>
-                        <li>Returns Policies</li>
-                        <li>Shipping</li>
-                        <li>Delivery</li>
-                        <li>Contact Us</li>
-                        <li>FAQs</li>
-                    </ul>
-                </div>
-                <div>
-                    <div>Contact Us</div>
-                    <ul className="text-sm">
-                        <li>Blog</li>
-                        <li>Best practices</li>
-                        <li>Colors</li>
-                        <li>Color wheel</li>
-                        <li>Support</li>
-                        <li>Developers</li>
-                        <li>Resource library</li>
-                    </ul>
-                </div>
-            </footer>
+                {/* Update Button */}
+                <button
+                    onClick={updateStatus}
+                    disabled={isUpdating}
+                    className={`mt-6 bg-blue-600 text-white py-2 px-6 rounded-md ${isUpdating ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"} transition-all`}
+                >
+                    {isUpdating ? "Updating..." : "Update Status"}
+                </button>
+            </main>
         </div>
     );
 }
