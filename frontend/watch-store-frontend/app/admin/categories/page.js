@@ -10,108 +10,6 @@ export default function CategoryManagement() {
     const [editCategory, setEditCategory] = useState(null);
     const [formData, setFormData] = useState({ name: "", description: "" });
 
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                setLoading(true);
-                const res = await fetch("http://localhost:8082/products/categories", {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                if (!res.ok) {
-                    throw new Error(`HTTP error! Status: ${res.status}`);
-                }
-
-                const data = await res.json();
-                setCategories(data);
-            } catch (error) {
-                console.error("Failed to fetch categories:", error.message);
-                setError(error.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchCategories();
-    }, []);
-
-    const handleAddCategory = () => {
-        setEditCategory(null);
-        setFormData({ name: "", description: "" });
-        setShowModal(true);
-    };
-
-    const handleEditCategory = (category) => {
-        setEditCategory(category);
-        setFormData({ name: category.name, description: category.description });
-        setShowModal(true);
-    };
-
-    const handleDeleteCategory = async (id) => {
-        if (!confirm("Are you sure you want to delete this category?")) return;
-        try {
-            const res = await fetch(`http://localhost:8082/products/categories/${id}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (!res.ok) {
-                throw new Error("Failed to delete category");
-            }
-
-            setCategories(categories.filter((category) => category.id !== id));
-        } catch (error) {
-            console.error("Failed to delete category:", error.message);
-            setError(error.message);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const method = editCategory ? "PUT" : "POST";
-            const url = editCategory
-                ? `http://localhost:8082/products/categories/${editCategory.id}`
-                : "http://localhost:8082/products/categories";
-            const res = await fetch(url, {
-                method,
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            });
-
-            if (!res.ok) {
-                throw new Error(`Failed to ${editCategory ? "update" : "add"} category`);
-            }
-
-            const updatedCategory = await res.json();
-            if (editCategory) {
-                setCategories(
-                    categories.map((c) => (c.id === updatedCategory.id ? updatedCategory : c))
-                );
-            } else {
-                setCategories([...categories, updatedCategory]);
-            }
-            setShowModal(false);
-        } catch (error) {
-            console.error(`Failed to ${editCategory ? "update" : "add"} category:`, error.message);
-            setError(error.message);
-        }
-    };
-
-    if (loading) {
-        return <div className="p-6 text-center">Loading...</div>;
-    }
-
-    if (error) {
-        return <div className="p-6 text-center text-red-500">Error: {error}</div>;
-    }
-
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Header */}
@@ -146,7 +44,6 @@ export default function CategoryManagement() {
                 <main className="w-4/5 p-6">
                     <h1 className="text-2xl font-bold mb-4">Category Management</h1>
                     <button
-                        onClick={handleAddCategory}
                         className="bg-green-500 text-white p-2 rounded mb-4 hover:bg-green-600"
                     >
                         Add New Category

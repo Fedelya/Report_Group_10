@@ -9,68 +9,6 @@ export default function OrderManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchOrders = async () => {
-            try {
-                setLoading(true);
-                const res = await fetch("http://localhost:8083/orders", {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                if (!res.ok) {
-                    throw new Error(`HTTP error! Status: ${res.status}`);
-                }
-
-                const data = await res.json();
-                setOrders(data);
-            } catch (error) {
-                console.error("Failed to fetch orders:", error.message);
-                setError(error.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchOrders();
-    }, []);
-
-    const updateStatus = async (orderId, newStatus) => {
-        try {
-            const res = await fetch(`http://localhost:8083/orders/${orderId}`, {
-                method: "PATCH",
-                body: JSON.stringify({ status: newStatus }),
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!res.ok) {
-                throw new Error("Failed to update status");
-            }
-
-            setOrders(
-                orders.map((o) =>
-                    o.id === orderId ? { ...o, status: newStatus } : o
-                )
-            );
-        } catch (error) {
-            console.error("Failed to update order status:", error.message);
-            setError(error.message);
-        }
-    };
-
-    const filteredOrders = filter === "All Orders"
-        ? orders
-        : orders.filter((order) => order.status === filter);
-
-    if (loading) {
-        return <div className="p-6 text-center">Loading...</div>;
-    }
-
-    if (error) {
-        return <div className="p-6 text-center text-red-500">Error: {error}</div>;
-    }
-
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Header */}
@@ -122,37 +60,7 @@ export default function OrderManagement() {
                             </tr>
                             </thead>
                             <tbody>
-                            {filteredOrders.length > 0 ? (
-                                filteredOrders.map((order) => (
-                                    <tr key={order.id} className="border-t">
-                                        <td className="p-2">
-                                            <Link href={`/staff/order/${order.id}`} className="text-blue-500 hover:underline">
-                                                {order.id}
-                                            </Link>
-                                        </td>
-                                        <td className="p-2">{order.customer}</td>
-                                        <td className="p-2">${order.total}</td>
-                                        <td className="p-2">{order.status}</td>
-                                        <td className="p-2">
-                                            <select
-                                                value={order.status}
-                                                onChange={(e) => updateStatus(order.id, e.target.value)}
-                                                className="p-1 border rounded"
-                                            >
-                                                <option value="Pending">Pending</option>
-                                                <option value="Processing">Processing</option>
-                                                <option value="Delivered">Delivered</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="5" className="p-2 text-center">
-                                        No orders found
-                                    </td>
-                                </tr>
-                            )}
+
                             </tbody>
                         </table>
                     </div>
