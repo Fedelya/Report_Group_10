@@ -1,14 +1,21 @@
 package com.watchstore.userservice.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.watchstore.userservice.dto.*;
+import com.watchstore.userservice.service.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    @GetMapping
-    public String getUsers() {
-        return "User Service is up!";
+    @Autowired private UserService userService;
+
+    @PostMapping("/register")
+    public ResponseEntity<UserDto> register(@RequestBody UserDto userDto) {
+        UserDto registeredUser = userService.registerUser(userDto);
+        return ResponseEntity.ok(registeredUser);
     }
 }
