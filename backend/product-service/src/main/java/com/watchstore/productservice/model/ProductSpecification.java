@@ -7,37 +7,28 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "categories")
-public class Category {
+@Table(name = "product_specifications")
+public class ProductSpecification {
     @Id
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "product_id", nullable = false)
+    private com.watchstore.productservice.model.Product product;
+
+    @Column(name = "`key`", nullable = false, length = 100)
+    private String key;
 
     @Lob
-    @Column(name = "description")
-    private String description;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "parent_id")
-    private Category parent;
-
-    @ColumnDefault("1")
-    @Column(name = "is_active")
-    private Boolean isActive;
-
-    @ColumnDefault("0.00")
-    @Column(name = "discount_percentage", precision = 5, scale = 2)
-    private BigDecimal discountPercentage;
+    @Column(name = "value", nullable = false)
+    private String value;
 
     @ColumnDefault("current_timestamp()")
     @Column(name = "created_at")

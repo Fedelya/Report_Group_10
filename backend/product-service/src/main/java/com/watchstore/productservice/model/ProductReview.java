@@ -7,37 +7,35 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "categories")
-public class Category {
+@Table(name = "product_reviews")
+public class ProductReview {
     @Id
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "product_id", nullable = false)
+    private com.watchstore.productservice.model.Product product;
+
+    @Column(name = "user_id", nullable = false)
+    private Integer userId;
+
+    @Column(name = "rating")
+    private Integer rating;
 
     @Lob
-    @Column(name = "description")
-    private String description;
+    @Column(name = "comment")
+    private String comment;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "parent_id")
-    private Category parent;
-
-    @ColumnDefault("1")
-    @Column(name = "is_active")
-    private Boolean isActive;
-
-    @ColumnDefault("0.00")
-    @Column(name = "discount_percentage", precision = 5, scale = 2)
-    private BigDecimal discountPercentage;
+    @ColumnDefault("0")
+    @Column(name = "is_approved")
+    private Boolean isApproved;
 
     @ColumnDefault("current_timestamp()")
     @Column(name = "created_at")
