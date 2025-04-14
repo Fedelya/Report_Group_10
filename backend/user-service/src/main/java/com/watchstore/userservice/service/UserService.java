@@ -9,6 +9,7 @@ import com.watchstore.userservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.modelmapper.ModelMapper;
@@ -22,19 +23,15 @@ public class UserService {
     @Autowired private UserRepository userRepository;
     @Autowired private PasswordResetTokenRepository tokenRepository;
     @Autowired private PasswordEncoder passwordEncoder;
-//    @Autowired private EmailService emailService;
     @Autowired private ModelMapper modelMapper;
 
     public UserDto registerUser(UserDto userDto) {
-        // In chi tiết đối tượng userDto
         System.out.println("Mapped userDto: " + userDto.toString());
 
-        // Kiểm tra username đã tồn tại chưa
         if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
 
-        // Kiểm tra password chi tiết hơn
         if (userDto.getPassword() == null || userDto.getPassword().trim().isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty");
         }
@@ -57,5 +54,11 @@ public class UserService {
         User savedUser = userRepository.save(user);
 
         return modelMapper.map(savedUser, UserDto.class);
+    }
+
+    public UserDto getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+        return modelMapper.map(user, UserDto.class);
     }
 }

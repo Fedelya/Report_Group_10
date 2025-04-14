@@ -1,5 +1,6 @@
 package com.watchstore.userservice.repository;
 
+import com.watchstore.userservice.dto.UserDto;
 import com.watchstore.userservice.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -10,4 +11,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     boolean existsByEmail(String email);
     Optional<User> findByEmail(String email);
     Optional<User> findByUsername(String username);
+    UserDto getUserByUsername(String username);
 }
