@@ -16,7 +16,7 @@ export default function ProductManagement() {
             <header className="bg-white shadow p-4 flex justify-between items-center">
                 <div className="text-2xl font-bold">📊 Watch Store</div>
                 <div className="space-x-4">
-                    <a href="#" className="hover:underline">Home</a>
+                    <a href="/" className="hover:underline">Home</a>
                     <a href="/staff/orders" className="hover:underline">Orders</a>
                     <a href="/admin/products" className="hover:underline">Products</a>
                     <a href="#" className="hover:underline">Reports</a>

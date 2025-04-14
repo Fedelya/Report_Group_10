@@ -1,16 +1,21 @@
-'use client';
-import React, { useState } from 'react';
-import { FiMoreVertical, FiSearch, FiShoppingCart, FiUser } from "react-icons/fi";
+"use client";
+
+import React from "react";
+import {FiMoreVertical, FiSearch, FiShoppingCart, FiUser} from "react-icons/fi";
 import Link from "next/link";
 
-export default function HomePage() {
-    const [searchOpen, setSearchOpen] = useState(false);
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [loggedIn, setLoggedIn] = useState(false);
+const products = [
+    { id: 1, name: "Luxury Watch", price: "$120", img: "/img_homepage/product-item1.jpg" },
+    { id: 2, name: "Classic Watch", price: "$80", img: "/img_homepage/product-item7.jpg" },
+    { id: 3, name: "Sports Watch", price: "$95", img: "/img_homepage/product-item8.jpg" },
+    { id: 4, name: "Modern Watch", price: "$110", img: "/img_homepage/product-item9.jpg" },
+    { id: 5, name: "Elegant Watch", price: "$130", img: "/img_homepage/product-item2.jpg" },
+    { id: 6, name: "Stylish Watch", price: "$150", img: "/img_homepage/product-item3.jpg" },
+];
 
+const ProductList = () => {
     return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Header */}
+        <div>
             <header className="bg-white shadow p-4 flex justify-between items-center relative">
                 <div className="text-2xl font-bold">⌚ Watch Store</div>
                 <nav className="hidden md:flex space-x-4">
@@ -36,53 +41,29 @@ export default function HomePage() {
                     <FiMoreVertical className="cursor-pointer" onClick={() => setMenuOpen(!menuOpen)} />
                 </div>
             </header>
-
-            {/* Hero Section */}
-            <section className="relative w-full h-96">
-                <img
-                    src="/img_homepage/background1.jpg"
-                    alt="Hero Banner"
-                    className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white text-center">
-                    <h1 className="text-4xl font-bold">Discover Timeless Elegance</h1>
-                    <p className="mt-2">Explore our latest collection of premium watches.</p>
-                    <button className="mt-4 bg-white text-black px-6 py-2 rounded">Shop Now</button>
-                </div>
-            </section>
-
-            {/* Featured Products */}
             <section className="p-6">
-                <h2 className="text-2xl font-bold mb-4 text-center">Featured Products</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[
-                            { id: 1, name: "Luxury Watch", price: "$120", img: "/img_homepage/product-item6.jpg" },
-                            { id: 2, name: "Classic Watch", price: "$80", img: "/img_homepage/product-item7.jpg" },
-                            { id: 3, name: "Sports Watch", price: "$95", img: "/img_homepage/product-item8.jpg" },
-                            { id: 4, name: "Modern Watch", price: "$110", img: "/img_homepage/product-item9.jpg" }
-                    ].map((product) => (
-                        <div key={product.id} className="bg-white shadow p-4 rounded flex flex-col items-center">
-                            <img src={product.img} alt={product.name} className="w-full h-40 object-cover rounded" />
-                            <p className="font-semibold mt-2">{product.name}</p>
-                            <p className="text-gray-600">{product.price}</p>
-                            <button className="mt-2 bg-black text-white px-4 py-1 rounded">Add to Cart</button>
+
+                <h2 className="text-2xl font-bold mb-6 text-center">Our Products</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {products.map((product) => (
+                        <div
+                            key={product.id}
+                            className="bg-white shadow p-4 rounded-lg hover:shadow-lg transition-all duration-300"
+                        >
+                            <img
+                                src={product.img}
+                                alt={product.name}
+                                className="w-full h-48 object-cover rounded"
+                            />
+                            <div className="mt-4 text-center">
+                                <h3 className="font-semibold text-lg">{product.name}</h3>
+                                <p className="text-gray-500 mt-1">{product.price}</p>
+                            </div>
                         </div>
                     ))}
                 </div>
-            </section>
 
-            {/* Categories */}
-            <section className="p-6">
-                <h2 className="text-xl font-bold mb-4">Shop by Category</h2>
-                <div className="flex gap-4">
-                    {["Luxury", "Sports", "Casual", "Smart"].map((category, index) => (
-                        <div key={index} className="bg-white shadow p-4 rounded text-center w-1/4">
-                            <p className="font-semibold">{category}</p>
-                        </div>
-                    ))}
-                </div>
             </section>
-
             {/* Footer */}
             <footer className="bg-white shadow mt-6 p-6 flex justify-between">
                 <div>
@@ -115,4 +96,6 @@ export default function HomePage() {
             </footer>
         </div>
     );
-}
+};
+
+export default ProductList;
