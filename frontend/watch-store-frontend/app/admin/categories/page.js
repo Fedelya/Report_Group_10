@@ -21,7 +21,7 @@ export default function CategoriesPage() {
         // Fetch danh sách danh mục
         const fetchCategories = async () => {
             try {
-                const res = await fetch('http://localhost:8082/categories', {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_PRODUCT_API_URL}/categories`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -46,6 +46,30 @@ export default function CategoriesPage() {
 
     if (loading) return <div className="p-8 text-center">Đang tải...</div>;
     if (error) return <div className="p-8 text-center text-red-600">Lỗi: {error}</div>;
+
+    const handleDelete = async (id) => {
+        if (confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
+            try {
+                const token = localStorage.getItem('jwt');
+                const res = await fetch(`${process.env.NEXT_PUBLIC_PRODUCT_API_URL}/categories/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!res.ok) {
+                    throw new Error('Không thể xóa danh mục');
+                }
+                
+                // Refresh categories list
+                setCategories(categories.filter(category => category.id !== id));
+            } catch (err) {
+                console.error('Error deleting category:', err);
+                alert(err.message);
+            }
+        }
+    };
 
     return (
         <div className="p-8">

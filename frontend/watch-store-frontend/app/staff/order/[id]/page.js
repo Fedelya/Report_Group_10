@@ -13,6 +13,62 @@ export default function OrderDetail() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
 
+    useEffect(() => {
+        const fetchOrderDetails = async () => {
+            try {
+                const token = localStorage.getItem('jwt');
+                const res = await fetch(`${process.env.NEXT_PUBLIC_ORDER_API_URL}/orders/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!res.ok) {
+                    throw new Error('Không thể tải thông tin đơn hàng');
+                }
+                
+                const data = await res.json();
+                setOrder(data);
+                setStatus(data.status);
+                setLoading(false);
+            } catch (err) {
+                console.error('Error fetching order details:', err);
+                setError(err.message);
+                setLoading(false);
+            }
+        };
+        
+        fetchOrderDetails();
+    }, [id]);
+    
+    const updateStatus = async () => {
+        setIsUpdating(true);
+        try {
+            const token = localStorage.getItem('jwt');
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ORDER_API_URL}/orders/${id}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status })
+            });
+            
+            if (!res.ok) {
+                throw new Error('Không thể cập nhật trạng thái đơn hàng');
+            }
+            
+            // Update local state
+            setOrder(prev => ({ ...prev, status }));
+            alert('Đã cập nhật trạng thái đơn hàng thành công!');
+        } catch (err) {
+            console.error('Error updating order status:', err);
+            alert(err.message);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Header */}

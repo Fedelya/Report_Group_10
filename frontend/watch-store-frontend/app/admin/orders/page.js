@@ -9,6 +9,32 @@ export default function OrderManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const token = localStorage.getItem('jwt');
+                const res = await fetch(`${process.env.NEXT_PUBLIC_ORDER_API_URL}/orders`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!res.ok) {
+                    throw new Error('Không thể tải danh sách đơn hàng');
+                }
+                
+                const data = await res.json();
+                setOrders(data);
+                setLoading(false);
+            } catch (err) {
+                console.error('Error fetching orders:', err);
+                setError(err.message);
+                setLoading(false);
+            }
+        };
+        
+        fetchOrders();
+    }, [filter]);
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Header */}

@@ -26,12 +26,61 @@ const CheckoutPage = () => {
         setForm((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        alert(`Đơn hàng đã được đặt với phương thức thanh toán: ${
-            form.paymentMethod === "cash" ? "Tiền mặt" : "Chuyển khoản"
-        }`);
-        // Gửi thông tin form + giỏ hàng đến server ở đây nếu cần
+        setLoading(true);
+        
+        try {
+            const token = localStorage.getItem('jwt');
+            // Prepare order data
+            const orderData = {
+                // Order data fields
+                // ...
+            };
+            
+            // First create the order
+            const orderRes = await fetch(`${process.env.NEXT_PUBLIC_ORDER_API_URL}/orders`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderData)
+            });
+            
+            if (!orderRes.ok) {
+                throw new Error('Không thể tạo đơn hàng');
+            }
+            
+            const order = await orderRes.json();
+            
+            // Then process the payment
+            const paymentRes = await fetch(`${process.env.NEXT_PUBLIC_PAYMENT_API_URL}/payments`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    orderId: order.id,
+                    amount: total,
+                    method: form.paymentMethod
+                })
+            });
+            
+            if (!paymentRes.ok) {
+                throw new Error('Thanh toán không thành công');
+            }
+            
+            // Handle successful payment
+            // ...
+            
+        } catch (err) {
+            console.error('Payment error:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
