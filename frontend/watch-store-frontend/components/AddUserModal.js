@@ -47,14 +47,14 @@ export default function AddUserModal({ isOpen, onClose }) {
         }
 
         try {
-            const response = await fetch("http://localhost:8080/api/admin/users", {
+            const response = await fetch("http://localhost:8080/users/register", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                     ...formData,
-                    isActive: true, // mặc định kích hoạt
+                    isActive: true,
                 }),
             });
 
@@ -92,43 +92,88 @@ export default function AddUserModal({ isOpen, onClose }) {
                 <h2 className="text-xl font-bold text-center mb-4">Thêm người dùng</h2>
                 <button className="absolute top-2 right-4 text-xl" onClick={onClose}>×</button>
 
-                {success && <div className="bg-green-100 text-green-800 text-sm p-2 rounded mb-2">Thêm người dùng thành công!</div>}
+                {success && (
+                    <div className="bg-green-100 text-green-800 text-sm p-2 rounded mb-2">
+                        Thêm người dùng thành công!
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-3">
-                    {["username", "email", "lastName", "firstName", "phone"].map(field => (
+                    {["username", "email", "lastName", "firstName", "phone"].map((field) => (
                         <div key={field}>
-                            <label>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
-                            <input name={field} onChange={handleChange} className="w-full border p-2" />
-                            {errors[field] && <p className="text-red-600 text-sm">{errors[field]}</p>}
+                            <label className="block mb-1 capitalize">{field}</label>
+                            <input
+                                name={field}
+                                value={formData[field]}
+                                onChange={handleChange}
+                                className="w-full border p-2 rounded"
+                            />
+                            {errors[field] && (
+                                <p className="text-red-600 text-sm">{errors[field]}</p>
+                            )}
                         </div>
                     ))}
 
                     <div>
-                        <label>Password</label>
-                        <input type="password" name="password" onChange={handleChange} className="w-full border p-2" />
-                        {errors.password && <p className="text-red-600 text-sm">{errors.password}</p>}
+                        <label className="block mb-1">Password</label>
+                        <input
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            className="w-full border p-2 rounded"
+                        />
+                        {errors.password && (
+                            <p className="text-red-600 text-sm">{errors.password}</p>
+                        )}
                     </div>
 
                     <div>
-                        <label>Confirm password</label>
-                        <input type="password" name="confirmPassword" onChange={handleChange} className="w-full border p-2" />
-                        {errors.confirmPassword && <p className="text-red-600 text-sm">{errors.confirmPassword}</p>}
+                        <label className="block mb-1">Confirm Password</label>
+                        <input
+                            type="password"
+                            name="confirmPassword"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            className="w-full border p-2 rounded"
+                        />
+                        {errors.confirmPassword && (
+                            <p className="text-red-600 text-sm">{errors.confirmPassword}</p>
+                        )}
                     </div>
 
                     <div>
-                        <label>Role</label>
-                        <select name="role" onChange={handleChange} className="w-full border p-2">
-                            <option value="">----</option>
+                        <label className="block mb-1">Role</label>
+                        <select
+                            name="role"
+                            value={formData.role}
+                            onChange={handleChange}
+                            className="w-full border p-2 rounded"
+                        >
+                            <option value="">-- Chọn vai trò --</option>
                             <option value="admin">Admin</option>
                             <option value="staff">Staff</option>
                             <option value="customer">Customer</option>
                         </select>
-                        {errors.role && <p className="text-red-600 text-sm">{errors.role}</p>}
+                        {errors.role && (
+                            <p className="text-red-600 text-sm">{errors.role}</p>
+                        )}
                     </div>
 
-                    <div className="flex justify-end gap-2">
-                        <button type="button" onClick={onClose} className="bg-gray-300 px-4 py-1 rounded">Cancel</button>
-                        <button type="submit" className="bg-blue-600 text-white px-4 py-1 rounded">Add</button>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="bg-gray-300 hover:bg-gray-400 px-4 py-1 rounded"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded"
+                        >
+                            Add
+                        </button>
                     </div>
                 </form>
             </div>
