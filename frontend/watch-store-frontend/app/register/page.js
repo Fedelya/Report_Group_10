@@ -26,19 +26,19 @@ export default function RegisterPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        
+
         if (formData.password !== formData.confirmPassword) {
             setError('Mật khẩu xác nhận không khớp');
             return;
         }
-        
+
         if (formData.password.length < 6) {
             setError('Mật khẩu phải có ít nhất 6 ký tự');
             return;
         }
-        
+
         setLoading(true);
-        
+
         try {
             const userData = {
                 username: formData.username,
@@ -48,51 +48,38 @@ export default function RegisterPage() {
                 lastName: formData.lastName || "",
                 phone: formData.phone || "",
                 address: formData.address || "",
-
-                active: true
-
                 role: "ROLE_USER",
                 isActive: true
-
             };
-            
+
             console.log('Sending registration data:', userData);
-            
+
             const apiUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:8081';
-            
+
             const res = await fetch(`${apiUrl}/users/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData),
                 credentials: 'include'
             });
-            
+
             console.log('Registration response status:', res.status);
-            
+
             const responseText = await res.text();
             console.log('Response text:', responseText);
 
-            
             let responseData;
             try {
                 responseData = responseText ? JSON.parse(responseText) : {};
             } catch (e) {
                 console.error("Không thể parse response JSON:", e);
                 responseData = { message: responseText || "Lỗi định dạng phản hồi" };
-
-
-            let responseData;
-            try {
-                responseData = JSON.parse(responseText);
-            } catch (e) {
-                responseData = { message: responseText };
-
             }
-            
+
             if (!res.ok) {
                 throw new Error(responseData?.message || `Đăng ký thất bại (${res.status})`);
             }
-            
+
             alert('Đăng ký thành công! Vui lòng đăng nhập.');
             router.push('/login');
         } catch (err) {
@@ -102,18 +89,18 @@ export default function RegisterPage() {
             setLoading(false);
         }
     };
-    
+
     return (
         <div className="min-h-screen py-12 bg-gray-100">
             <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold mb-6 text-center">Đăng ký tài khoản</h2>
-                
+
                 {error && (
                     <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
                         {error}
                     </div>
                 )}
-                
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                         <div>
@@ -127,7 +114,7 @@ export default function RegisterPage() {
                                 className="w-full p-3 border rounded"
                             />
                         </div>
-                        
+
                         <div>
                             <label className="block text-gray-700 mb-2">Email *</label>
                             <input
@@ -140,7 +127,7 @@ export default function RegisterPage() {
                             />
                         </div>
                     </div>
-                    
+
                     <div className="grid md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-gray-700 mb-2">Họ</label>
@@ -152,7 +139,7 @@ export default function RegisterPage() {
                                 className="w-full p-3 border rounded"
                             />
                         </div>
-                        
+
                         <div>
                             <label className="block text-gray-700 mb-2">Tên</label>
                             <input
@@ -164,7 +151,7 @@ export default function RegisterPage() {
                             />
                         </div>
                     </div>
-                    
+
                     <div>
                         <label className="block text-gray-700 mb-2">Số điện thoại</label>
                         <input
@@ -175,7 +162,7 @@ export default function RegisterPage() {
                             className="w-full p-3 border rounded"
                         />
                     </div>
-                    
+
                     <div>
                         <label className="block text-gray-700 mb-2">Địa chỉ</label>
                         <textarea
@@ -186,7 +173,7 @@ export default function RegisterPage() {
                             rows="2"
                         ></textarea>
                     </div>
-                    
+
                     <div className="grid md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-gray-700 mb-2">Mật khẩu *</label>
@@ -199,7 +186,7 @@ export default function RegisterPage() {
                                 className="w-full p-3 border rounded"
                             />
                         </div>
-                        
+
                         <div>
                             <label className="block text-gray-700 mb-2">Xác nhận mật khẩu *</label>
                             <input
@@ -212,14 +199,14 @@ export default function RegisterPage() {
                             />
                         </div>
                     </div>
-                    
+
                     <div className="pt-2">
                         <button
                             type="submit"
                             disabled={loading}
                             className={`w-full py-3 rounded font-medium ${
-                                loading 
-                                    ? "bg-gray-400 cursor-not-allowed" 
+                                loading
+                                    ? "bg-gray-400 cursor-not-allowed"
                                     : "bg-black text-white hover:bg-gray-800"
                             }`}
                         >
@@ -227,7 +214,7 @@ export default function RegisterPage() {
                         </button>
                     </div>
                 </form>
-                
+
                 <div className="mt-6 text-center">
                     <p>
                         Đã có tài khoản?{" "}
