@@ -1,13 +1,42 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiMoreVertical, FiSearch, FiShoppingCart, FiUser } from "react-icons/fi";
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
     const [searchOpen, setSearchOpen] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [loggedIn, setLoggedIn] = useState(false);
+    const [username, setUsername] = useState('');
+    const router = useRouter();
 
+    // Sử dụng một useEffect duy nhất để kiểm tra thông tin đăng nhập
+    useEffect(() => {
+        // Lấy thông tin từ localStorage
+        const token = localStorage.getItem('jwt');
+        const savedUsername = localStorage.getItem('username');
+        const userRole = localStorage.getItem('role');
+        
+        if (token && savedUsername) {
+            console.log('Đã đăng nhập với:', savedUsername);
+            setLoggedIn(true);
+            setUsername(savedUsername);
+        } else {
+            // Nếu không có thông tin trong localStorage, đặt là chưa đăng nhập
+            setLoggedIn(false);
+            setUsername('');
+        }
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('jwt');
+        localStorage.removeItem('username');
+        localStorage.removeItem('role');
+        setLoggedIn(false);
+        setUsername('');
+        router.push('/login');
+    };
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Header */}
@@ -16,7 +45,7 @@ export default function HomePage() {
                 <nav className="hidden md:flex space-x-4">
                     <a href="/" className="hover:underline">Home</a>
                     <a href="/admin/products" className="hover:underline">Products</a>
-                    <a href="/admin/orders" className="hover:underline">Order< /a>
+                    <a href="/admin/orders" className="hover:underline">Orders</a>
                     <a href="/admin/categories" className="hover:underline">Categories</a>
                     <a href="#" className="hover:underline">Sale</a>
                     <a href="#" className="hover:underline">Pages</a>
@@ -26,7 +55,26 @@ export default function HomePage() {
                         <input type="text" placeholder="Search..." className="p-2 w-64 border-none outline-none" />
                         <FiSearch className="cursor-pointer ml-2" />
                     </div>
-                    <FiUser className="cursor-pointer" />
+
+                    {loggedIn ? (
+                        <>
+                            <span className="text-sm font-semibold">Hi, {username}</span>
+                            <button onClick={() => {
+                                        localStorage.removeItem('jwt');
+                                        localStorage.removeItem('username');
+                                        localStorage.removeItem('role');
+                                        setLoggedIn(false);
+                                        setUsername('');
+                                    }} className="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
+                                Logout
+                            </button>
+                        </>
+                    ) : (
+                        <Link href="/login" className="text-blue-600 hover:underline">
+                            <FiUser className="cursor-pointer" />
+                        </Link>
+                    )}
+
                     <Link href="/admin/cart">
                         <FiShoppingCart className="cursor-pointer" />
                     </Link>

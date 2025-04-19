@@ -31,7 +31,7 @@ public class UserController {
         return ResponseEntity.ok(registeredUser);
     }
 
-    @PostMapping("/login")
+        @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequestDto) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -43,12 +43,10 @@ public class UserController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String username = authentication.getName();
-        String role = authentication.getAuthorities().iterator().next().getAuthority(); // Ví dụ: ROLE_ADMIN
-
+        String role = authentication.getAuthorities().iterator().next().getAuthority();
         String token = jwtUtil.generateToken(username, role);
 
-        return ResponseEntity.ok(new LoginResponse(token));
-
+        return ResponseEntity.ok(new LoginResponse(token, username, role));
     }
 
 
