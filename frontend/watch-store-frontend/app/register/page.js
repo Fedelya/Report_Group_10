@@ -27,7 +27,6 @@ export default function RegisterPage() {
         e.preventDefault();
         setError('');
         
-        // Validate form
         if (formData.password !== formData.confirmPassword) {
             setError('Mật khẩu xác nhận không khớp');
             return;
@@ -36,32 +35,46 @@ export default function RegisterPage() {
         setLoading(true);
         
         try {
-            // Chuẩn bị dữ liệu gửi đi
             const userData = {
                 username: formData.username,
                 email: formData.email,
                 password: formData.password,
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                phone: formData.phone,
-                address: formData.address,
-                role: 'USER',  // Mặc định user thông thường
-                isActive: true  // Mặc định kích hoạt tài khoản
+                firstName: formData.firstName || "",
+                lastName: formData.lastName || "",
+                phone: formData.phone || "",
+                address: formData.address || "",
+                role: "ROLE_USER",
+                isActive: true
             };
             
-            // Gọi API đăng ký
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/users/register`, {
+            console.log('Sending registration data:', userData);
+            
+            const apiUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:8081';
+            
+            const res = await fetch(`${apiUrl}/users/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
+                body: JSON.stringify(userData),
+                credentials: 'include'
             });
             
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => null);
-                throw new Error(errorData?.message || 'Đăng ký thất bại');
+            console.log('Registration response status:', res.status);
+            
+            const responseText = await res.text();
+            console.log('Response text:', responseText);
+
+            let responseData;
+            try {
+                responseData = JSON.parse(responseText);
+            } catch (e) {
+                responseData = { message: responseText };
             }
             
-            // Chuyển đến trang đăng nhập sau khi đăng ký thành công
+            if (!res.ok) {
+                throw new Error(responseData?.message || `Đăng ký thất bại (${res.status})`);
+            }
+            
+            alert('Đăng ký thành công! Vui lòng đăng nhập.');
             router.push('/login');
         } catch (err) {
             console.error('Register error:', err);

@@ -11,19 +11,15 @@ export default function HomePage() {
     const [username, setUsername] = useState('');
     const router = useRouter();
 
-    // Sử dụng một useEffect duy nhất để kiểm tra thông tin đăng nhập
     useEffect(() => {
-        // Lấy thông tin từ localStorage
         const token = localStorage.getItem('jwt');
         const savedUsername = localStorage.getItem('username');
-        const userRole = localStorage.getItem('role');
         
         if (token && savedUsername) {
             console.log('Đã đăng nhập với:', savedUsername);
             setLoggedIn(true);
             setUsername(savedUsername);
         } else {
-            // Nếu không có thông tin trong localStorage, đặt là chưa đăng nhập
             setLoggedIn(false);
             setUsername('');
         }

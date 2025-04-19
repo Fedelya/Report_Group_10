@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -8,19 +8,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [isLoggedIn, setLoggedIn] = useState(false);
     const router = useRouter();
-
-    useEffect(() => {
-        // Kiểm tra nếu người dùng đã đăng nhập thì chuyển hướng về trang chủ
-        const token = localStorage.getItem('jwt');
-        const savedUsername = localStorage.getItem('username');
-        
-        if (token && savedUsername) {
-            console.log('Đã đăng nhập với:', savedUsername);
-            router.push('/');
-        }
-    }, [router]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -28,7 +16,7 @@ export default function LoginPage() {
         setLoading(true);
         
         try {
-            const res = await fetch('http://localhost:8081/users/login', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_USER_API_URL}/users/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })

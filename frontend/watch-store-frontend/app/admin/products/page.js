@@ -1,6 +1,7 @@
 // app/admin/products/page.js
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
 
 export default function ProductManagement() {
     const [products, setProducts] = useState([]);
@@ -9,6 +10,42 @@ export default function ProductManagement() {
     const [showModal, setShowModal] = useState(false);
     const [editProduct, setEditProduct] = useState(null);
     const [formData, setFormData] = useState({ name: "", price: "", stock: "" });
+
+    useEffect(() => {
+        // Check login and admin role
+        const token = localStorage.getItem('jwt');
+        const role = localStorage.getItem('role');
+        
+        if (!token || role !== 'ADMIN') {
+            router.push('/login');
+            return;
+        }
+        
+        // Fetch products
+        const fetchProducts = async () => {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_PRODUCT_API_URL}/products`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!res.ok) {
+                    throw new Error('Không thể tải danh sách sản phẩm');
+                }
+                
+                const data = await res.json();
+                setProducts(data);
+                setLoading(false);
+            } catch (err) {
+                console.error('Error fetching products:', err);
+                setError(err.message);
+                setLoading(false);
+            }
+        };
+        
+        fetchProducts();
+    }, [router]);
 
     return (
         <div className="min-h-screen bg-gray-100">
