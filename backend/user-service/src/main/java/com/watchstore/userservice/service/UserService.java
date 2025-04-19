@@ -24,6 +24,8 @@ public class UserService {
     @Autowired private PasswordResetTokenRepository tokenRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private ModelMapper modelMapper;
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
 
     // Phương thức kiểm tra username tồn tại hay chưa
     public boolean existsByUsername(String username) {
@@ -70,6 +72,11 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
         return modelMapper.map(user, UserDto.class);
+    }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElse(null);
     }
 
     public Page<UserDto> getAllUsers(Pageable pageable) {
@@ -159,7 +166,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("Token không hợp lệ"));
 
         // Kiểm tra token còn hiệu lực không
-        if (resetToken.getExpiryDate().isBefore(Instant.now())) {
+        if (resetToken.getExpiresAt().isBefore(Instant.now())) {
             throw new IllegalArgumentException("Token đã hết hạn");
         }
 
@@ -173,28 +180,27 @@ public class UserService {
         tokenRepository.delete(resetToken);
     }
 
-    public void createPasswordResetToken(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với email: " + email));
-
-        // Sinh token ngẫu nhiên
-        String token = UUID.randomUUID().toString();
-
-        // Tạo thời hạn token (24 giờ)
-        Instant expiryDate = Instant.now().plusSeconds(24 * 60 * 60);
-
+    @Transactional
+    public void createPasswordResetToken(User user, String token) {
         // Xóa token cũ nếu có
-        tokenRepository.deleteByUserId(user.getId());
+        try {
+            passwordResetTokenRepository.deleteByUserId(user.getId());
+        } catch (Exception e) {
+            System.err.println("Error deleting old tokens: " + e.getMessage());
+            // Continue with the process
+        }
 
-        // Lưu token vào cơ sở dữ liệu
+        // Tạo token mới
         PasswordResetToken resetToken = new PasswordResetToken();
         resetToken.setToken(token);
         resetToken.setUser(user);
-        resetToken.setExpiryDate(expiryDate);
-        tokenRepository.save(resetToken);
+        resetToken.setExpiresAt(Instant.now().plusSeconds(PasswordResetToken.EXPIRATION));
 
-        // TODO: Gửi email chứa link reset password với token
-        System.out.println("Reset token for " + email + ": " + token);
+        System.out.println("Creating token: " + token);
+        System.out.println("For user: " + user.getUsername());
+        System.out.println("Expires at: " + resetToken.getExpiresAt());
+
+        passwordResetTokenRepository.save(resetToken);
     }
 
     // Kiểm tra token đặt lại mật khẩu còn hợp lệ không
@@ -202,6 +208,6 @@ public class UserService {
         PasswordResetToken resetToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Token không hợp lệ"));
 
-        return !resetToken.getExpiryDate().isBefore(Instant.now());
+        return !resetToken.getExpiresAt().isBefore(Instant.now());
     }
 }

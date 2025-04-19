@@ -7,7 +7,13 @@ import com.watchstore.userservice.dto.login.LoginResponse;
 import com.watchstore.userservice.dto.password.ForgotPasswordDto;
 import com.watchstore.userservice.dto.password.PasswordChangeDto;
 import com.watchstore.userservice.dto.password.ResetPasswordDto;
+import com.watchstore.userservice.exception.ResourceNotFoundException;
+import com.watchstore.userservice.model.PasswordResetToken;
+import com.watchstore.userservice.model.User;
+import com.watchstore.userservice.repository.PasswordResetTokenRepository;
+import com.watchstore.userservice.repository.UserRepository;
 import com.watchstore.userservice.service.*;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,9 +25,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -30,6 +40,12 @@ public class UserController {
     @Autowired private UserService userService;
     @Autowired private JwtUtil jwtUtil;
     @Autowired private AuthenticationManager authenticationManager;
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     // CREATE - Đăng ký người dùng mới
     @PostMapping("/register")
@@ -100,17 +116,32 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
         try {
+            System.out.println("Đang xử lý yêu cầu '/me' - Lấy thông tin người dùng hiện tại");
             if (authentication == null) {
+                System.out.println("Authentication là null - Không được xác thực");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("message", "Không được xác thực"));
             }
 
+            System.out.println("Authentication: " + authentication);
+            System.out.println("Principal: " + authentication.getPrincipal());
+            System.out.println("Name: " + authentication.getName());
+            System.out.println("Authorities: " + authentication.getAuthorities());
+
             String username = authentication.getName();
+            System.out.println("Đang tìm thông tin người dùng với username: " + username);
+
             UserDto userDto = userService.getUserByUsername(username);
+            System.out.println("Đã tìm thấy thông tin người dùng: " + userDto);
 
             return ResponseEntity.ok(userDto);
+        } catch (UsernameNotFoundException ex) {
+            System.err.println("Không tìm thấy username: " + ex.getMessage());
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", ex.getMessage()));
         } catch (Exception e) {
-            System.err.println("Lỗi lấy thông tin người dùng: " + e.getMessage());
+            System.err.println("Lỗi không xác định khi lấy thông tin người dùng: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Lỗi lấy thông tin người dùng: " + e.getMessage()));
@@ -277,41 +308,79 @@ public class UserController {
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordDto forgotPasswordDto) {
         try {
-            userService.createPasswordResetToken(forgotPasswordDto.getEmail());
-            return ResponseEntity.ok(Map.of("message", "Email khôi phục mật khẩu đã được gửi"));
+            System.out.println("Đang xử lý yêu cầu quên mật khẩu cho email: " + forgotPasswordDto.getEmail());
+
+            // Tìm kiếm người dùng qua email
+            User user = userService.getUserByEmail(forgotPasswordDto.getEmail());
+
+            if (user == null) {
+                System.out.println("Không tìm thấy người dùng với email: " + forgotPasswordDto.getEmail());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Không tìm thấy tài khoản với email này"));
+            }
+
+            // Tạo token đặt lại mật khẩu
+            String token = UUID.randomUUID().toString();
+            userService.createPasswordResetToken(user, token);
+
+            // TODO: Gửi email với token
+            // emailService.sendPasswordResetEmail(user.getEmail(), token);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Email đặt lại mật khẩu đã được gửi",
+                    "token", token // Chỉ trả về trong môi trường dev, bỏ trong production
+            ));
         } catch (Exception e) {
-            System.err.println("Lỗi yêu cầu đặt lại mật khẩu: " + e.getMessage());
+            System.err.println("Lỗi quên mật khẩu: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(Map.of("message", "Lỗi yêu cầu đặt lại mật khẩu: " + e.getMessage()));
         }
     }
 
     // UPDATE - Đặt lại mật khẩu bằng token
+    @Transactional
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto) {
         try {
+            System.out.println("Processing password reset request with token: " + resetPasswordDto.getToken());
+
+            // Validate the token
+            if (!userService.validatePasswordResetToken(resetPasswordDto.getToken())) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn"));
+            }
+
+            // Reset the password
             userService.resetPassword(resetPasswordDto.getToken(), resetPasswordDto.getNewPassword());
+
             return ResponseEntity.ok(Map.of("message", "Mật khẩu đã được đặt lại thành công"));
+        } catch (IllegalArgumentException e) {
+            System.err.println("Lỗi đặt lại mật khẩu (invalid argument): " + e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
+        } catch (ResourceNotFoundException e) {
+            System.err.println("Lỗi đặt lại mật khẩu (resource not found): " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
             System.err.println("Lỗi đặt lại mật khẩu: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(Map.of("message", "Lỗi đặt lại mật khẩu: " + e.getMessage()));
         }
     }
 
     // READ - Kiểm tra tính hợp lệ của token reset password
-    @GetMapping("/validate-reset-token")
-    public ResponseEntity<?> validateResetToken(@RequestParam String token) {
-        try {
-            boolean valid = userService.validatePasswordResetToken(token);
-            return ResponseEntity.ok(Map.of("valid", valid));
-        } catch (Exception e) {
-            System.err.println("Lỗi kiểm tra token: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("valid", false, "message", e.getMessage()));
-        }
+    @Transactional(readOnly = true)
+    public boolean validatePasswordResetToken(String token) {
+        return passwordResetTokenRepository.findByToken(token)
+                .map(resetToken -> {
+                    boolean isValid = !resetToken.getExpiresAt().isBefore(Instant.now()) &&
+                            !Boolean.TRUE.equals(resetToken.getIsUsed());
+                    System.out.println("Token validation result: " + isValid);
+                    return isValid;
+                })
+                .orElse(false);
     }
 }
