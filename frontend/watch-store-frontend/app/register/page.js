@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -32,6 +32,11 @@ export default function RegisterPage() {
             return;
         }
         
+        if (formData.password.length < 6) {
+            setError('Mật khẩu phải có ít nhất 6 ký tự');
+            return;
+        }
+        
         setLoading(true);
         
         try {
@@ -43,8 +48,7 @@ export default function RegisterPage() {
                 lastName: formData.lastName || "",
                 phone: formData.phone || "",
                 address: formData.address || "",
-                role: "ROLE_USER",
-                isActive: true
+                active: true
             };
             
             console.log('Sending registration data:', userData);
@@ -54,20 +58,20 @@ export default function RegisterPage() {
             const res = await fetch(`${apiUrl}/users/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData),
-                credentials: 'include'
+                body: JSON.stringify(userData)
             });
             
             console.log('Registration response status:', res.status);
             
             const responseText = await res.text();
             console.log('Response text:', responseText);
-
+            
             let responseData;
             try {
-                responseData = JSON.parse(responseText);
+                responseData = responseText ? JSON.parse(responseText) : {};
             } catch (e) {
-                responseData = { message: responseText };
+                console.error("Không thể parse response JSON:", e);
+                responseData = { message: responseText || "Lỗi định dạng phản hồi" };
             }
             
             if (!res.ok) {
