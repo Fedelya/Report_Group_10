@@ -15,6 +15,7 @@ import java.time.Instant;
 @Table(name = "password_reset_tokens")
 public class PasswordResetToken {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
@@ -23,7 +24,7 @@ public class PasswordResetToken {
     @JoinColumn(name = "user_id", nullable = false)
     private com.watchstore.userservice.model.User user;
 
-    @Column(name = "token", nullable = false)
+    @Column(name = "token", nullable = false, unique = true)
     private String token;
 
     @Column(name = "expires_at", nullable = false)
@@ -36,5 +37,10 @@ public class PasswordResetToken {
     @ColumnDefault("current_timestamp()")
     @Column(name = "created_at")
     private Instant createdAt;
+
+    @Column(nullable = false)
+    private Instant expiryDate;
+
+    public static final int EXPIRATION = 24 * 60 * 60;
 
 }

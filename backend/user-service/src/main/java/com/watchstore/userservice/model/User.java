@@ -35,7 +35,7 @@ public class User {
     @Column(name = "last_name", length = 50)
     private String lastName;
 
-    @ColumnDefault("'CUSTOMER'")
+    @ColumnDefault("'USER'")
     @Lob
     @Column(name = "role", nullable = false)
     private String role;

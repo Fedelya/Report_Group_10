@@ -55,13 +55,7 @@ export default function HomePage() {
                     {loggedIn ? (
                         <>
                             <span className="text-sm font-semibold">Hi, {username}</span>
-                            <button onClick={() => {
-                                        localStorage.removeItem('jwt');
-                                        localStorage.removeItem('username');
-                                        localStorage.removeItem('role');
-                                        setLoggedIn(false);
-                                        setUsername('');
-                                    }} className="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
+                            <button onClick={handleLogout} className="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
                                 Logout
                             </button>
                         </>
