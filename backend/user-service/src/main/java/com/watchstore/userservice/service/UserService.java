@@ -57,8 +57,12 @@ public class UserService {
         user.setPasswordHash(passwordEncoder.encode(userDto.getPassword()));
         user.setFirstName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
-        user.setRole(userDto.getRole());
-        user.setIsActive(userDto.getIsActive());
+        if (userDto.getRole() != null) {
+            user.setRole(userDto.getRole());
+        } else {
+            user.setRole(Role.ROLE_USER);
+        }
+        user.setIsActive(userDto.getIsActive() != null ? userDto.getIsActive() : true);
         user.setCreatedAt(new Date().toInstant());
         user.setUpdatedAt(new Date().toInstant());
         user.setPhone(userDto.getPhone());
@@ -66,6 +70,19 @@ public class UserService {
         User savedUser = userRepository.save(user);
 
         return modelMapper.map(savedUser, UserDto.class);
+    }
+
+    @Transactional
+    public UserDto createUserWithRole(UserDto userDto, Role role) {
+        if (existsByUsername(userDto.getUsername())) {
+            throw new IllegalArgumentException("Username đã tồn tại");
+        }
+        if (existsByEmail(userDto.getEmail())) {
+            throw new IllegalArgumentException("Email đã tồn tại");
+        }
+
+        userDto.setRole(role);
+        return registerUser(userDto);
     }
 
     public UserDto getUserByUsername(String username) {
@@ -209,5 +226,26 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("Token không hợp lệ"));
 
         return !resetToken.getExpiresAt().isBefore(Instant.now());
+    }
+
+    public long countTotalUsers() {
+        return userRepository.count();
+    }
+
+    public long countActiveUsers() {
+        return userRepository.countByIsActiveTrue();
+    }
+
+    // Các phương thức phân quyền khác
+    public boolean isAdmin(String username) {
+        return userRepository.findByUsername(username)
+                .map(user -> Role.ROLE_ADMIN.equals(user.getRole()))
+                .orElse(false);
+    }
+
+    public boolean isStaff(String username) {
+        return userRepository.findByUsername(username)
+                .map(user -> Role.ROLE_STAFF.equals(user.getRole()))
+                .orElse(false);
     }
 }

@@ -1,6 +1,7 @@
 package com.watchstore.userservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.watchstore.userservice.model.Role;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,7 +14,7 @@ public class UserDto {
     private String phone;
     private String firstName;
     private String lastName;
-    private String role;
+    private Role role = Role.ROLE_USER;
     private Boolean isActive;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
