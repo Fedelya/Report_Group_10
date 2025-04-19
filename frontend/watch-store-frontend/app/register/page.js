@@ -48,7 +48,12 @@ export default function RegisterPage() {
                 lastName: formData.lastName || "",
                 phone: formData.phone || "",
                 address: formData.address || "",
+
                 active: true
+
+                role: "ROLE_USER",
+                isActive: true
+
             };
             
             console.log('Sending registration data:', userData);
@@ -58,13 +63,15 @@ export default function RegisterPage() {
             const res = await fetch(`${apiUrl}/users/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
+                body: JSON.stringify(userData),
+                credentials: 'include'
             });
             
             console.log('Registration response status:', res.status);
             
             const responseText = await res.text();
             console.log('Response text:', responseText);
+
             
             let responseData;
             try {
@@ -72,6 +79,14 @@ export default function RegisterPage() {
             } catch (e) {
                 console.error("Không thể parse response JSON:", e);
                 responseData = { message: responseText || "Lỗi định dạng phản hồi" };
+
+
+            let responseData;
+            try {
+                responseData = JSON.parse(responseText);
+            } catch (e) {
+                responseData = { message: responseText };
+
             }
             
             if (!res.ok) {
