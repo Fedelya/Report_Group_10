@@ -35,10 +35,9 @@ public class User {
     @Column(name = "last_name", length = 50)
     private String lastName;
 
-    @ColumnDefault("'USER'")
-    @Lob
     @Column(name = "role", nullable = false)
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.ROLE_USER;
 
     @ColumnDefault("1")
     @Column(name = "is_active")

@@ -12,7 +12,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -28,19 +30,34 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+    public AuthenticationEntryPoint jwtAuthenticationEntryPoint() {
+        return new Http403ForbiddenEntryPoint();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager, AuthenticationEntryPoint jwtAuthenticationEntryPoint) throws Exception {
         JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(authenticationManager, jwtUtil, userDetailsService);
 
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())  // Thêm cấu hình CORS
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
                         .requestMatchers("/users/register", "/users/login", "/users/forgot-password",
                                 "/users/reset-password", "/users/validate-reset-token").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Cho phép OPTIONS request
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Admin endpoints
+                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+
+                        // Staff endpoints
+                        .requestMatchers("/staff/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+
+                        // All authenticated users
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
