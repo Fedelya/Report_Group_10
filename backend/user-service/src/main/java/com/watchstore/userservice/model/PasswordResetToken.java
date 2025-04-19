@@ -19,7 +19,7 @@ public class PasswordResetToken {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private com.watchstore.userservice.model.User user;
@@ -37,9 +37,6 @@ public class PasswordResetToken {
     @ColumnDefault("current_timestamp()")
     @Column(name = "created_at")
     private Instant createdAt;
-
-    @Column(nullable = false)
-    private Instant expiryDate;
 
     public static final int EXPIRATION = 24 * 60 * 60;
 
